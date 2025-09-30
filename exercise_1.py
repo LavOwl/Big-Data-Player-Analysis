@@ -80,7 +80,7 @@ def calculate_maximum(input_dir:str, output_dir:str) -> None:
             if v[1] > max_challenges:
                 max_challenges = v[1]
                 max_challenger = v[0]
-        context.write(max_challenger, 1)
+        context.write(max_challenger, "")
 
     job = Job(input_dir, output_dir, fmap, fred)
     job.setCombiner(fcomb)

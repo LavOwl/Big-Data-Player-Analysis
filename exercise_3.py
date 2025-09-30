@@ -1,6 +1,5 @@
 from emulator import Job, _Context #type: ignore 
 from typing import Any, Iterable
-import re
 
 ORIGIN = "origin"
 INTERM = "interm"
@@ -14,7 +13,7 @@ def remove_duplicates(input_dir:str, output_dir:str):
         context.write((key, params[0]), 1)
 
     def fred(key: Any, values: Iterable[Any], context: _Context):
-        context.write(key, 1)
+        context.write(key[0], key[1])
 
     job = Job(input_dir, output_dir, fmap, fred)
 
@@ -25,7 +24,7 @@ def remove_duplicates(input_dir:str, output_dir:str):
 
 def above_H(input_dir:str, output_dir:str, h: int):
     def fmap(key: Any, value: Any, context: _Context):
-        context.write(int(re.search(r"\('(\d+)'", key).group(1)), 1) #type: ignore
+        context.write(key, 1) #type: ignore
 
     def fcomb(key: Any, values: Iterable[Any], context: _Context):
         challengers = 0
@@ -37,8 +36,8 @@ def above_H(input_dir:str, output_dir:str, h: int):
         challengers = 0
         for v in values:
             challengers += v
-        if challengers > int(context['requisite']): #type: ignore
-            context.write(key, "")
+        if challengers >= int(context['requisite']): #type: ignore
+            context.write(key, challengers)
 
     job = Job(input_dir, output_dir, fmap, fred)
 
