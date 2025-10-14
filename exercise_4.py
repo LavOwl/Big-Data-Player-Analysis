@@ -186,7 +186,7 @@ def update_heroic(input_dir: str, output_dir: str, alpha:float):
 
 def compare_heroics(inputs:list[str], output:str) -> float:
     def fmap(key: Any, value: Any, context: _Context):
-        context.write(key, value)
+        context.write(key, float(value))
 
     def fred(key: Any, values: Iterable[Any], context: _Context):
         sign:int = 1
@@ -203,7 +203,7 @@ def compare_heroics(inputs:list[str], output:str) -> float:
     job.waitForCompletion()
 
     def fmap2(key: Any, value: Any, context: _Context):
-        context.write(1, [value, 1])
+        context.write(1, [float(value), 1])
 
     def fcomb(key: Any, values: Iterable[Any], context: _Context):
         total = 0
@@ -224,9 +224,38 @@ def compare_heroics(inputs:list[str], output:str) -> float:
     job = Job('temporal', output, fmap2, fred2)
     job.setCombiner(fcomb)
     job.waitForCompletion()
-    with open(output + ".txt", "r") as f:
+    with open(output + "/output.txt", "r") as f:
         value = float(f.read().strip())
     return value
+
+def top_10(input_dir:str, output:str):
+    def fsort(key_1: Any, key_2: Any):
+        if key_1 == key_2:
+            return 0
+        elif key_1 < key_2:
+            return 1
+        else:
+            return -1
+
+    def fshuffle(key_1: Any, key_2: Any):
+        return 0
+    
+    def fmap(key: Any, value: Any, context: _Context):
+        context.write(float(value), [key, value])
+
+    def fred(key: Any, values: Iterable[Any], context: _Context):
+        i = 0
+        for v in values:
+            i += 1
+            print(i)
+            context.write(v[0], v[1])
+            if i == 10:
+                break
+    
+    job = Job(input_dir, output, fmap, fred)
+    job.setShuffleCmp(fshuffle)
+    job.setSortCmp(fsort)
+    job.waitForCompletion()
 
 avg_challenger_score('origin', 'avg_challenger_score')
 intialize_heroic_score('origin', 'heroic_score')
@@ -238,7 +267,10 @@ goes_to_heroic_score:bool = True
 heroic_outputs:list[str] = ['heroic_score', 'secondary_heroic_score']
 
 difference:float = 2
-while difference > 10e-3:
-    join_heroic(['duels_with_avg_scores', 'heroic_score'], 'iterable')
-    update_heroic('iterable', 'heroic_score', 0.1)
+while difference > 0.1:
+    join_heroic(['duels_with_avg_scores', heroic_outputs[int(goes_to_heroic_score)]], 'iterable')
+    update_heroic('iterable', heroic_outputs[int(not goes_to_heroic_score)], 0.1)
     difference = compare_heroics(heroic_outputs, 'difference')
+    goes_to_heroic_score = not goes_to_heroic_score
+
+top_10(heroic_outputs[int(goes_to_heroic_score)], "top_10")
