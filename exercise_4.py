@@ -8,6 +8,7 @@ def clean_key(s: str) -> str:
         return s.split('_', 1)[0]
 
 def avg_challenger_score(input_dir:str, output_dir:str):
+    # DISCLAIMER: Esta tarea ya está hecha por el ejercicio 2, podría no volver a ejecutarse, pero la pusimos de vuelta acá para que cualquiera de los dos programas pueda ser ejecutado independientemente de si se ejecutó el otro previamente o no.
     def fmap(key: Any, value: Any, context: _Context):
         context.write(key, (int(value.split()[1]), 1))
         context.write(value.split()[0], (0, 0))
@@ -169,6 +170,12 @@ def update_heroic(input_dir: str, output_dir: str, alpha:float):
         result = float(ph) * float(avg_challenger) / float(avg_challenged)
         context.write(key, result)
 
+    def fcomb(key: Any, values: Iterable[Any], context: _Context):
+        total = 0
+        for v in values:
+            total += v
+        context.write(key, total)
+
     def fred(key: Any, values: Iterable[Any], context: _Context):
         alpha = float(context['alpha']) #type: ignore
         total = 0
@@ -180,7 +187,7 @@ def update_heroic(input_dir: str, output_dir: str, alpha:float):
 
     job = Job(input_dir, output_dir, fmap, fred)
     job.setParams({'alpha': alpha})
-    #job.setCombiner(fred) HACER COMBINER DSP, SE PUEDE
+    job.setCombiner(fcomb)
 
     job.waitForCompletion()
 

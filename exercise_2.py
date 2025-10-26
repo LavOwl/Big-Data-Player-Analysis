@@ -14,7 +14,7 @@ def aggregate_by_challenger(input_dir:str, output_dir:str) -> None:
     output_dir -- directory where the amount of challenges will be written.
     Return: None.
     """
-    
+
     def fmap(key: Any, value: Any, context: _Context):
         params = value.split()
         context.write(key, (1, int(params[1])))
